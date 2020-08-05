@@ -32,6 +32,44 @@ bool cleanName(string input) {
     return is_valid;
 }
 
+void getCommonInfo(Person * member){
+    /*Registering first name
+    Checking for input validity*/
+    bool is_valid = false;
+    string input;
+
+    while (!is_valid){
+        
+        cout << "\n\rEnter first name (characters only):" << endl;
+        getline(cin,input,'\n');
+        
+        is_valid = cleanName(input);
+        if (!is_valid) cout << "All characters must be alphabetic." << endl;
+    }
+
+    member->setFName(input);
+
+    /*Registering last name
+    Checking for input validity*/
+    is_valid = false;
+    while (!is_valid){
+        
+        cout << "\n\rEnter middle and last names (characters only):" << endl;
+        getline(cin,input,'\n');
+        
+        is_valid = cleanName(input);
+        if (!is_valid) cout << "All characters must be alphabetic." << endl;
+    }
+
+    member->setLName(input);
+    //Person *p_stud = &stud;
+
+    /*Setting enrollment status.
+    This script is for enrolled people only*/
+    member->setEnrolled(true);
+    return;
+}
+
 /*Callback from database*/
 static int callback(void *NotUsed, int argc, char **argv, char **azColName) {
     int i;
@@ -90,6 +128,8 @@ int main(int argc, char* argv[]) {
 
 
     /*Registering people*/
+
+    /*Relevant variables*/
     Staff staff;
     Student stud;
     Person * new_pers;
@@ -107,70 +147,21 @@ int main(int argc, char* argv[]) {
         
         /*If staff*/
         case 1:
+            new_pers = &staff;
+            getCommonInfo(new_pers);
 
-            /*Registering first name
-            Checking for input validity*/
-            is_valid = false;
-            while (!is_valid){
-                cout << "\n\rEnter first name (characters only):" << endl;
-                getline(cin,input,'\n');
-                
-                is_valid = cleanName(input);
-                if (!is_valid) cout << "All characters must be alphabetic." << endl;
-            }
-            staff.setFName(input);
+            cout << staff.getName().fname << \
+                " " << staff.getName().lname << endl;
 
-            /*Registering last name
-            Checking for input validity*/
-            is_valid = false;
-            while (!is_valid){
-                cout << "\n\rEnter middle and last names (characters only):" << endl;
-                getline(cin,input,'\n');
-                
-                is_valid = cleanName(input);
-                if (!is_valid) cout << "All characters must be alphabetic." << endl;
-            }
-            staff.setLName(input);
-
-            /*Setting enrollment status.
-            This script is for enrolled people only*/
-            staff.setEnrolled(true);
             break;
 
         /*If student*/
         case 2:
-            /*Registering first name
-            Checking for input validity*/
-            is_valid = false;
-            while (!is_valid){
-                
-                cout << "\n\rEnter first name (characters only):" << endl;
-                getline(cin,input,'\n');
-                
-                is_valid = cleanName(input);
-                if (!is_valid) cout << "All characters must be alphabetic." << endl;
-            }
+            new_pers = &stud;
+            getCommonInfo(new_pers);
 
-            stud.setFName(input);
-
-            /*Registering last name
-            Checking for input validity*/
-            is_valid = false;
-            while (!is_valid){
-                
-                cout << "\n\rEnter middle and last names (characters only):" << endl;
-                getline(cin,input,'\n');
-                
-                is_valid = cleanName(input);
-                if (!is_valid) cout << "All characters must be alphabetic." << endl;
-            }
-
-            stud.setLName(input);
-            //Person *p_stud = &stud;
-
-            /*Setting enrollment status.
-            This script is for enrolled people only*/
-            stud.setEnrolled(true);
+            cout << stud.getName().fname <<\
+                " " << stud.getName().lname << endl;
 
             /*Getting isentment from payments*/
             is_valid = false;
@@ -185,6 +176,8 @@ int main(int argc, char* argv[]) {
                 }
             }
             stud.setIsent(is_isent);
+            cout << "Student isent status = " << \
+                stud.getIsent() << endl;
 
             break;
         

@@ -9,7 +9,6 @@ typedef struct full_name
 class Person{
 private:
 	full_name name;
-	float credit;
 	bool is_enrolled;
 
 public:

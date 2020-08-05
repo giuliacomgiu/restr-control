@@ -1,7 +1,6 @@
 #include "person.h"
 
 Person::Person(){
-	credit = 0;
 	is_enrolled = false;
 };
 
