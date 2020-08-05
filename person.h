@@ -6,23 +6,22 @@ typedef struct full_name
 	string lname;
 } full_name;
 
-class Pessoa{
+class Person{
 private:
 	full_name name;
 	float credit;
 	bool is_enrolled;
 
 public:
-	Pessoa();
-	~Pessoa();
+	Wallet wallet;
+
+	Person();
+	~Person();
 
 	full_name getName(void);
-	void setName(void);
+	void setFName(string);
+	void setLName(string);
 
 	bool getEnrolled(void);
-	void setEnrolled(void);
-
-	void addCash(void);
-	void decCash(void);
-
+	void setEnrolled(bool);
 };
