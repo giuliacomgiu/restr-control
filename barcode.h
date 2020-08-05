@@ -9,3 +9,5 @@ public:
 	void setCode(unsigned int);
 	unsigned int getCode(void);
 };
+
+//
