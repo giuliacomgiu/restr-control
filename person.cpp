@@ -29,3 +29,12 @@ void Person::setEnrolled(bool e){
 	is_enrolled = e;
 	return;
 };
+
+void Person::setCPF(unsigned int i){
+	cpf = i;
+	return;
+};
+
+unsigned int Person::getCPF(void){
+	return cpf;
+};
