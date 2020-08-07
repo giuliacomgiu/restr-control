@@ -1,4 +1,3 @@
-/*Lib headers*/
 //g++ main.cpp -l sqlite3
 #include <iostream>
 #include <string>
@@ -9,7 +8,6 @@
 #include <sstream>
 
 
-/*Classes headers or cpps*/
 #include "wallet.cpp"
 #include "person.cpp"
 #include "dept.cpp"
@@ -18,7 +16,6 @@
 #include "staff.cpp"
 
 
-/*Defining functions for registration*/
 bool cleanName(string &input) {
     bool is_valid = true;
 
@@ -37,9 +34,9 @@ string stringSQL( string &s ) {
 }
 
 
-void getName(Person * member){
+void promptName(Person * member){
     
-    /*Registering first name*/
+    //FIRST NAME
     bool is_valid = false;
     string input;
 
@@ -52,8 +49,8 @@ void getName(Person * member){
     }
     member->setFName(input);
 
-    /*Registering last name*/
-        is_valid = false;
+    //LAST NAME
+    is_valid = false;
     while (!is_valid){
         
         cout << "\n\rEnter middle and last names (characters only):" << endl;
@@ -66,8 +63,8 @@ void getName(Person * member){
     return;
 }
 
-void getCPF(Person * member){
-    /*Considera que CPF nao pode ser 0*/
+void promptCPF(Person * member){
+    
     bool is_valid = false;
     int cpf;
     string input;
@@ -77,19 +74,16 @@ void getCPF(Person * member){
         getline(cin,input,'\n');    
         stringstream(input) >> cpf;
         
-        is_valid = true; // exits loop if ok
-
-        if (cpf <= 0){
-            is_valid = false;
-            cout << "Invalid input. Enter digits only." << endl;
-        }
+        if (cpf > 0) is_valid = true;
+        else cout << "Invalid input. Enter digits only." << endl;
     }
 
     member->setCPF(cpf);
     return;
 }
 
-void getIsent(Student & stud){
+void promptIsent(Student & new_stud){
+    
     bool is_valid = false;
     bool is_isent = false;
     string input;
@@ -106,7 +100,7 @@ void getIsent(Student & stud){
         }
     }
 
-    stud.setIsent(is_isent);
+    new_stud.setIsent(is_isent);
 
     return;
 }
@@ -117,22 +111,21 @@ update it, but when its sucessful, heres the proper way
 
     sql = "INSERT INTO Pessoa(fname, lname, cpf," 
     " credito, is_enr, enr_mode, is_isento) VALUES ("
-    + stringSQL(fname_s) + ","
-    + stringSQL(lname_s) + ","
+    + stringSQL(fname) + ","
+    + stringSQL(lname) + ","
     + to_string(cpf) + ","
     + to_string(0) + ","
-    + to_string(isenr_s) + ","
+    + to_string(is_enrolled) + ","
     + to_string(mode) + ","
     + to_string(is_isent)+ ") "
     "ON CONFLICT(cpf) DO UPDATE SET "
-    "is_enr=" + to_string(isenr_s) + ","
+    "is_enr=" + to_string(is_enrolled) + ","
     +"enr_mode=" + to_string(mode) + ","
     +"is_isento=" + to_string(is_isent)+
     ";";
 */
 
-/*Callback from database*/
-static int callback(void *NotUsed, int argc, char **argv, char **azColName) {
+static int callbackSQL(void *NotUsed, int argc, char **argv, char **azColName) {
     int i;
     for(i = 0; i<argc; i++) {
         printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
@@ -147,19 +140,23 @@ int main(int argc, char* argv[]) {
     char *zErrMsg = 0;
     int rc;
     string sql;
+    bool DB_OPEN_ERR = false;
+    bool DB_EXEC_ERR = false;
+    bool INPUT_ERR = false;
 
-   /* Open database */
+
+    //DATABASE HANDLING
     rc = sqlite3_open("user.sqlite", &db);
    
     if( rc ) {
         fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
-        return(0);
+        DB_OPEN_ERR = true;
     } else {
         fprintf(stdout, "Opened database successfully\n");
     }
 
-    /* Create SQL tables */
-    sql = "CREATE TABLE IF NOT EXISTS Pessoa("  \
+    if (!DB_OPEN_ERR) {
+        sql = "CREATE TABLE IF NOT EXISTS Pessoa("  \
         "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL," \
         "fname TEXT NOT NULL," \
         "lname TEXT NOT NULL," \
@@ -179,127 +176,123 @@ int main(int argc, char* argv[]) {
         "name TEXT NOT NULL );";
 
 
-   /* Commit SQL Table */
-   rc = sqlite3_exec(db, sql.c_str(), callback, 0, &zErrMsg);
-   
-    if( rc != SQLITE_OK ){
-        fprintf(stderr, "SQL error: %s\n", zErrMsg);
-        sqlite3_free(zErrMsg);
-    } else {
-        fprintf(stdout, "Table created successfully\n");
-    }
-
-
-    /*Registering people*/
-
-    /*Error variable*/
-    bool inputErr = false;
-
-    /*Parsing variables*/
-    Staff stff;
-    Student stud;
-    Person * new_pers;
-    short int mode;
-    enum modeEnroll {staff = 1, student = 2};
-    bool is_isent = 0;
-    string input;
-
-    cout << "Are you registering staff or student?\n\
-    \r(1) for staff\n\r(2) for student" << endl;
-    getline(cin,input,'\n');
-    stringstream(input) >> mode;
-    
-    /*Choosing between staff or student*/    
-    switch (mode){
-        
-        /*If staff*/
-        case staff:
-            new_pers = &stff;
-            getCPF(new_pers);
-            getName(new_pers);
-            
-            /*This script is for enrolled people only*/
-            new_pers->setEnrolled(true);
-            break;
-
-        /*If student*/
-        case student:
-            new_pers = &stud;
-            getCPF(new_pers);
-            getName(new_pers);
-
-            /*This script is for enrolled people only*/
-            new_pers->setEnrolled(true);
-
-            /*Getting isentment from payments*/
-            getIsent(stud);
-            is_isent = stud.getIsent();
-
-            break;
-        
-        default:
-            cout << "Invalid input." << endl;
-            inputErr = true;
-            break;
-    }
-
-    if (!inputErr){
-
-        string fname_s, lname_s;
-        const short int isenr_s = 1;
-        unsigned int cpf;
-
-        /*Getting common data from input*/
-        fname_s = (new_pers->getName()).fname;
-        lname_s = (new_pers->getName()).lname;
-        cpf = new_pers->getCPF();
-
-        /*Inserting person on database*/
-        //Use upsertSQL when upsert available
-        sql = "INSERT INTO Pessoa(fname, lname, cpf," 
-        " credito, is_enr, enr_mode, is_isento) VALUES ("
-        + stringSQL(fname_s) + ","
-        + stringSQL(lname_s) + ","
-        + to_string(cpf) + ","
-        + to_string(0) + ","
-        + to_string(isenr_s) + ","
-        + to_string(mode) + ","
-        + to_string(is_isent)+ ");";
-        
-        cout << sql.c_str() << endl;
-    
-        rc = sqlite3_exec(db, sql.c_str(), callback, 0, &zErrMsg);
+        rc = sqlite3_exec(db, sql.c_str(), callbackSQL, 0, &zErrMsg);
        
-        if( rc == SQLITE_CONSTRAINT ){
-        
-        /*If cpf wasnt unique, update */
+        if( rc != SQLITE_OK ){
             fprintf(stderr, "SQL error: %s\n", zErrMsg);
             sqlite3_free(zErrMsg);
+            DB_EXEC_ERR = true;
+        } else {
+            fprintf(stdout, "Table created successfully\n");
+        }
+    }
 
-            sql = "UPDATE Pessoa SET "
-            "enr_mode=" + to_string(mode) + ", "
-            "is_isento=" + to_string(is_isent) + " "
-            "WHERE cpf = " + to_string(cpf) + ";";
-            cout << "\n" << sql.c_str() << endl;
 
-            rc = sqlite3_exec(db, sql.c_str(), callback, 0, &zErrMsg);
+    //PROMPTING FOR PEOPLE TO REGISTER
+    if (!DB_OPEN_ERR && !DB_EXEC_ERR){
 
-            if(rc != SQLITE_OK){
+        string input;
+    
+        Staff new_staff;
+        Student new_stud;
+        Person * new_pers;
+        
+        short int mode;
+        enum enroll_mode {staff = 1, student = 2};
+        bool is_isent = 0;
+    
+        cout << "Are you registering staff or student?\n\
+        \r(1) for staff\n\r(2) for student" << endl;
+        getline(cin,input,'\n');
+        stringstream(input) >> mode;
+        
+        switch (mode){
+            
+            case staff:
+                new_pers = &new_staff;
+                
+                promptCPF(new_pers);
+                promptName(new_pers);
+                new_pers->setEnrolled(true);
+                
+                break;
+    
+            case student:
+                new_pers = &new_stud;
+                
+                promptCPF(new_pers);
+                promptName(new_pers);
+                new_pers->setEnrolled(true);
+                promptIsent(new_stud);
+                is_isent = new_stud.getIsent();
+    
+                break;
+            
+            default:
+                cout << "Invalid input." << endl;
+                INPUT_ERR = true;
+                break;
+        }
+    
+
+        if (!INPUT_ERR){
+
+            string fname, lname;
+            const short int is_enrolled = 1;
+            unsigned int cpf;
+
+            /*Getting common data from input*/
+            fname = (new_pers->getName()).fname;
+            lname = (new_pers->getName()).lname;
+            cpf = new_pers->getCPF();
+
+            /*Inserting person on database*/
+            //Use upsertSQL when upsert available
+            sql = "INSERT INTO Pessoa(fname, lname, cpf," 
+            " credito, is_enr, enr_mode, is_isento) VALUES ("
+            + stringSQL(fname) + ","
+            + stringSQL(lname) + ","
+            + to_string(cpf) + ","
+            + to_string(0) + ","
+            + to_string(is_enrolled) + ","
+            + to_string(mode) + ","
+            + to_string(is_isent)+ ");";
+            
+            cout << sql.c_str() << endl;
+        
+            rc = sqlite3_exec(db, sql.c_str(), callbackSQL, 0, &zErrMsg);
+            
+            //IF CPF NOT UNIQUE, UPDATE
+            if( rc == SQLITE_CONSTRAINT ){
+            
+                fprintf(stderr, "SQL error: %s\n", zErrMsg);
+                sqlite3_free(zErrMsg);
+
+                sql = "UPDATE Pessoa SET "
+                "enr_mode=" + to_string(mode) + ", "
+                "is_isento=" + to_string(is_isent) + " "
+                "WHERE cpf = " + to_string(cpf) + ";";
+                cout << "\n" << sql.c_str() << endl;
+
+                rc = sqlite3_exec(db, sql.c_str(), callbackSQL, 0, &zErrMsg);
+
+                if(rc != SQLITE_OK){
+                    fprintf(stderr, "SQL error: %s\n", zErrMsg);
+                    sqlite3_free(zErrMsg);
+                } else {
+                    fprintf(stdout, "Records created successfully\n");
+                }
+
+
+            } else if (rc != SQLITE_OK){
                 fprintf(stderr, "SQL error: %s\n", zErrMsg);
                 sqlite3_free(zErrMsg);
             } else {
                 fprintf(stdout, "Records created successfully\n");
             }
-
-
-        } else if (rc != SQLITE_OK){
-            fprintf(stderr, "SQL error: %s\n", zErrMsg);
-            sqlite3_free(zErrMsg);
-        } else {
-            fprintf(stdout, "Records created successfully\n");
         }
     }
-       
+    
     sqlite3_close(db);
 
     return 0;
