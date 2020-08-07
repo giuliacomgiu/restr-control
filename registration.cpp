@@ -8,12 +8,12 @@
 #include <sstream>
 
 
-#include "wallet.cpp"
-#include "person.cpp"
-#include "dept.cpp"
-#include "barcode.cpp"
-#include "student.cpp"
-#include "staff.cpp"
+#include "./classes/wallet.cpp"
+#include "./classes/person.cpp"
+#include "./classes/dept.cpp"
+#include "./classes/barcode.cpp"
+#include "./classes/student.cpp"
+#include "./classes/staff.cpp"
 
 
 bool cleanName(string &input) {
@@ -292,7 +292,7 @@ int main(int argc, char* argv[]) {
             }
         }
     }
-    
+
     sqlite3_close(db);
 
     return 0;
